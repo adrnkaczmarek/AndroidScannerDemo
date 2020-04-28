@@ -1,24 +1,40 @@
 apply plugin: 'com.android.library'
 
+repositories {
+    google()
+    jcenter()
+}
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.3'
+    }
+}
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
+    ndkVersion "21.0.6113669"
     buildToolsVersion "28.0.3"
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 28
+        minSdkVersion 23
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        ndk
-                {
-                    moduleName "Scanner"
-                }
+        ndk {
+            moduleName "Scanner"
+            abiFilters 'armeabi-v7a','arm64-v8a','x86','x86_64'
+        }
     }
-    sourceSets.main
-            {
-                jni.srcDirs = []
-                jniLibs.srcDir 'src/main/libs'
-            }
+    sourceSets.main {
+        jni.srcDirs = []
+        jniLibs.srcDir 'src/main/libs'
+    }
     buildTypes {
         release {
             minifyEnabled false
