@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,7 +23,9 @@ import android.widget.ImageButton;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jhansi on 04/04/15.
@@ -32,6 +37,8 @@ public class PickImageFragment extends Fragment {
     private ImageButton galleryButton;
     private Uri fileUri;
     private IScanner scanner;
+    private Integer REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 1;
+    private String[] permissions = new String[]{"android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.CAMERA"};
 
     @Override
     public void onAttach(Activity activity) {
@@ -113,6 +120,11 @@ public class PickImageFragment extends Fragment {
     }
 
     public void openCamera() {
+        requestPermissions(permissions, REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         File file = createImageFile();
         boolean isDirectoryCreated = file.getParentFile().mkdirs();
@@ -181,5 +193,51 @@ public class PickImageFragment extends Fragment {
                 = BitmapFactory.decodeFileDescriptor(
                 fileDescriptor.getFileDescriptor(), null, options);
         return original;
+    }
+
+    private Bitmap getBitmapUnrotated(Uri selectedimg) throws IOException {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 1;
+        AssetFileDescriptor fileDescriptor;
+        fileDescriptor =
+                getActivity().getContentResolver().openAssetFileDescriptor(selectedimg, "r");
+        Bitmap bitmap = BitmapFactory.decodeFileDescriptor(
+                fileDescriptor.getFileDescriptor(),
+                null,
+                options
+        );
+
+        ExifInterface ei = new ExifInterface(selectedimg.getPath());
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_UNDEFINED);
+
+        Bitmap rotatedBitmap;
+
+        switch(orientation) {
+
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                rotatedBitmap = rotateImage(bitmap, 90);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                rotatedBitmap = rotateImage(bitmap, 180);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                rotatedBitmap = rotateImage(bitmap, 270);
+                break;
+
+            case ExifInterface.ORIENTATION_NORMAL:
+            default:
+                rotatedBitmap = bitmap;
+        }
+
+        return rotatedBitmap;
+    }
+
+    private Bitmap rotateImage(Bitmap source, float angle) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 }
