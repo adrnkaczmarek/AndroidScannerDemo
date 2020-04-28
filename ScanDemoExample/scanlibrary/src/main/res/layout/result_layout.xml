@@ -71,15 +71,13 @@
         android:layout_height="match_parent"
         android:layout_above="@id/doneButton"
         android:layout_below="@id/topBar"
-        android:layout_gravity="center"
-        android:layout_margin="@dimen/scanPadding">
+        android:layout_gravity="center">
 
         <ImageView
             android:id="@+id/scannedImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="@dimen/scanPadding" />
+            android:layout_gravity="center" />
     </FrameLayout>
 
 
